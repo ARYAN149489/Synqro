@@ -140,17 +140,12 @@ git checkout -b feature/AmazingFeature
 git commit -m 'Add AmazingFeature'
 git push origin feature/AmazingFeature
 ```
-
-## 📝 License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
 ## 👨‍💻 Author
 
 **Aryan Kansal** - Full Stack Developer
 
 [![GitHub](https://img.shields.io/badge/GitHub-ARYAN149489-181717?logo=github)](https://github.com/ARYAN149489)
-[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?logo=linkedin)](https://linkedin.com/in/yourprofile)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?logo=linkedin)](https://linkedin.com/in/aryankansal113)
 [![Email](https://img.shields.io/badge/Email-aryankansal113@gmail.com-D14836?logo=gmail&logoColor=white)](mailto:aryankansal113@gmail.com)
 
 ## 📞 Support
