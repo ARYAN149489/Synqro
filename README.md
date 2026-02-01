@@ -122,15 +122,6 @@ VITE_BACKEND_URL=http://localhost:3000
 3. Set production URLs for `FRONTEND_URL` and `VITE_BACKEND_URL`
 4. Enable HTTPS/SSL and configure CORS for your domain
 
-## 🗺️ Roadmap
-
-- [ ] Private one-on-one messaging
-- [ ] File and image sharing
-- [ ] Message reactions and search
-- [ ] User profiles with avatars
-- [ ] Dark mode
-- [ ] Voice/video calls
-
 ## 🤝 Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request.
