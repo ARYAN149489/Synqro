@@ -12,15 +12,21 @@ dotenv.config({ quiet: true });
 
 const app = express();
 const server = http.createServer(app);
+
+// CORS origins - support both dev ports and production URL
+const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:5174'].filter(Boolean);;
 const io = socketio(server, {
     cors: {
-        origin: [process.env.FRONTEND_URL || 'http://localhost:5173'],
+        origin: allowedOrigins,
         methods: ['GET', 'POST'],
         credentials: true,
     },
 });
 // middleware
-app.use(cors());
+app.use(cors({
+    origin: allowedOrigins,
+    credentials: true
+}));
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URL)

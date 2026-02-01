@@ -1,32 +1,6 @@
-import {
-  Box,
-  Button,
-  Container,
-  Heading,
-  Text,
-  Stack,
-  Icon,
-  useColorModeValue,
-  SimpleGrid,
-  Flex,
-  VStack,
-  HStack,
-  Badge,
-  Input,
-} from "@chakra-ui/react";
+import {Box,Button,Container,Heading,Text,Stack,Icon,useColorModeValue,SimpleGrid,Flex,VStack,HStack,Badge,Input} from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
-import {
-  FiMessageSquare,
-  FiUsers,
-  FiLock,
-  FiLogIn,
-  FiLogOut,
-  FiUserPlus,
-  FiGlobe,
-  FiActivity,
-  FiCheckCircle,
-  FiUserCheck,
-} from "react-icons/fi";
+import {FiMessageSquare,FiUsers,FiLock,FiLogIn,FiLogOut,FiUserPlus,FiGlobe,FiActivity,FiCheckCircle,FiUserCheck} from "react-icons/fi";
 
 const Feature = ({ title, text, icon, badges = [] }) => {
   return (

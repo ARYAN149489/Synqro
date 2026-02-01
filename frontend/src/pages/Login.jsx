@@ -6,11 +6,57 @@ import {
   Input,
   VStack,
   Text,
+  useToast,
 } from "@chakra-ui/react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FiLogIn } from "react-icons/fi";
+import axios from "axios";
+import { useState } from "react";
 
 const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState("");
+  const toast = useToast();
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const resp = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL || "http://localhost:3000"}/api/users/login`,
+        {
+          email,
+          password
+        },
+        { validateStatus: (status) => status < 500 }
+      );
+      if(resp.status === 200) {
+        localStorage.setItem('userInfo', JSON.stringify(resp.data.user));
+        navigate("/chat");
+      } else {
+        toast({
+          title: 'Login Failed',
+          description: resp.data?.message || 'Invalid credentials',
+          status: 'error',
+          duration: 4000,
+          isClosable: true,
+        });
+      }
+    } catch (error) {
+      const errorMessage = error.message || 'An error occurred';
+      toast({
+        title: 'Login Failed',
+        description: errorMessage,
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
   return (
     <Box
       w="100%"
@@ -95,6 +141,8 @@ const Login = () => {
                 borderColor="gray.200"
                 _hover={{ borderColor: "blue.500" }}
                 _focus={{ borderColor: "blue.500" }}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </FormControl>
 
@@ -110,10 +158,14 @@ const Login = () => {
                 borderColor="gray.200"
                 _hover={{ borderColor: "blue.500" }}
                 _focus={{ borderColor: "blue.500" }}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </FormControl>
 
             <Button
+              onClick={handleLogin}
+              isLoading={loading}
               colorScheme="blue"
               width="100%"
               size="lg"

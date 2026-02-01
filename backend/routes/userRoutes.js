@@ -36,10 +36,11 @@ userRouter.post('/login', async(req,resp)=>{
         const { email, password} = req.body;
         const user = await User.findOne({email});
         if(!user){
+            // console.log("Hello");
             return resp.status(401).json({ message:"invalid email" });
         }
         if(await user.matchPassword(password)){
-            resp.json({
+            return resp.json({
                 user:{
                     _id: user._id,
                     username: user.username,
@@ -49,10 +50,10 @@ userRouter.post('/login', async(req,resp)=>{
                 }
             })
         } else{
-            resp.status(401).json({ message:"Invalid password" });
+            return resp.status(401).json({ message:"Invalid password" });
         }
     } catch (error) {
-        resp.status(404).json({ message:error.message });
+        return resp.status(404).json({ message:error.message });
     }
 })
 

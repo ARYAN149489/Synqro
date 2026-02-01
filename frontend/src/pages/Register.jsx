@@ -1,15 +1,44 @@
-import {
-  Box,
-  Button,
-  FormControl,
-  FormLabel,
-  Input,
-  VStack,
-  Text,
-} from "@chakra-ui/react";
-import { Link } from "react-router-dom";
+import { Box, Button, FormControl, FormLabel, Input, VStack, Text, useToast } from "@chakra-ui/react";
+import axios from "axios";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const Register = () => {
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState("");
+  const [loading, setLoading] = useState("");
+  const toast = useToast();
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const { data } = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL || "http://localhost:3000"}/api/users/register`,
+        {
+          username,
+          email,
+          password
+        });
+      navigate("/login");
+
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || error.message || 'An error occurred';
+      toast({
+        title: 'Login Failed',
+        description: errorMessage,
+        status: 'error',
+        duration: 4000,
+        isClosable: true,
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <Box
       w="100%"
@@ -88,6 +117,8 @@ const Register = () => {
                 _hover={{ borderColor: "indigo.500" }}
                 _focus={{ borderColor: "indigo.500" }}
                 placeholder="Choose a username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
             </FormControl>
 
@@ -103,6 +134,8 @@ const Register = () => {
                 _hover={{ borderColor: "indigo.500" }}
                 _focus={{ borderColor: "indigo.500" }}
                 placeholder="Enter your email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </FormControl>
 
@@ -118,6 +151,8 @@ const Register = () => {
                 _hover={{ borderColor: "indigo.500" }}
                 _focus={{ borderColor: "indigo.500" }}
                 placeholder="Create a password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
               />
             </FormControl>
 
@@ -130,6 +165,8 @@ const Register = () => {
               size="lg"
               fontSize="md"
               mt={4}
+              isLoading={loading}
+              onClick={handleSubmit}
             >
               Create Account
             </Button>
