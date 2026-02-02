@@ -14,7 +14,7 @@ const app = express();
 const server = http.createServer(app);
 
 // CORS origins - support both dev ports and production URL
-const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:5174'].filter(Boolean);;
+const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:5174'];
 const io = socketio(server, {
     cors: {
         origin: allowedOrigins,
