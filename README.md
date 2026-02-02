@@ -1,16 +1,73 @@
 <div align="center">
 
-# 💬 ChitChat
+# 💬 Synqro
 
 **A modern, real-time group chat application**
 
-[![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
+[![React](https://img.shields.io/badge/React-18+-61D## VITE_BACKEND_URL=http://localhost:3000
+```
+
+## 🚀 Deployment
+
+### Backend Deployment (Render)
+
+1. **Connect Repository:** Link your GitHub repo to Render
+2. **Configure Settings:**
+   - Root Directory: `backend`
+   - Build Command: `npm install`
+   - Start Command: `npm start`
+3. **Environment Variables:**
+   - `MONGO_URL` - MongoDB Atlas connection string
+   - `JWT_SECRET` - Secure JWT secret key
+   - `FRONTEND_URL` - Your Netlify URL (e.g., `https://synqro.netlify.app`)
+   - `PORT` - 3000
+
+### Frontend Deployment (Netlify)
+
+1. **Connect Repository:** Link your GitHub repo to Netlify
+2. **Configure Settings:**
+   - Base Directory: `frontend`
+   - Build Command: `npm install && npm run build`
+   - Publish Directory: `frontend/dist`
+3. **Environment Variables:**
+   - `VITE_BACKEND_URL` - Your Render backend URL (e.g., `https://chitchat-lihl.onrender.com`)
+
+### Database (MongoDB Atlas)
+
+1. Create a free cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
+2. Whitelist IP: `0.0.0.0/0` (allow all IPs for Render/Netlify)
+3. Get connection string and add to Render environment variables
+
+## 🗺️ Roadmapupport
+
+⭐ Star this repo if you find it helpful!
+
+📧 **Contact:** aryankansal113@gmail.com  
+🐛 **Issues:** [GitHub Issues](https://github.com/ARYAN149489/ChitChat/issues)
+
+---
+
+<div align="center">
+
+**Made with ❤️ by Aryan Kansal**
+
+*© 2026 Synqro - Real-time Group Chat Application*
+
+</div>
+
+**Aryan Kansal** - Full Stack Developer
+
+[![GitHub](https://img.shields.io/badge/GitHub-ARYAN149489-181717?logo=github)](https://github.com/ARYAN149489)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?logo=linkedin)](https://linkedin.com/in/aryan-kansal)
+[![Email](https://img.shields.io/badge/Email-aryankansal113@gmail.com-D14836?logo=gmail&logoColor=white)](mailto:aryankansal113@gmail.com)o=react&logoColor=white)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![MongoDB](https://img.shields.io/badge/MongoDB-Latest-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
 [![Socket.io](https://img.shields.io/badge/Socket.io-4+-010101?logo=socket.io&logoColor=white)](https://socket.io/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Built with React, Node.js, Express, Socket.IO, and MongoDB
+
+### 🚀 **[Live Demo](https://synqro.netlify.app)** | **[Backend API](https://chitchat-lihl.onrender.com)**
 
 [Features](#-features) • [Tech Stack](#-tech-stack) • [Installation](#-installation) • [API](#-api-endpoints) • [Deployment](#-deployment)
 
@@ -25,13 +82,22 @@ Built with React, Node.js, Express, Socket.IO, and MongoDB
 - 👥 Create and join multiple group chats
 - ✍️ Live typing indicators and online status tracking
 - 📱 Responsive UI with Chakra UI components
-- 🔔 Real-time notifications for user join/leave events
-
 ## 🛠️ Tech Stack
 
 **Frontend:** React 18 • Vite • Chakra UI • Socket.IO Client • React Router • Axios
 
 **Backend:** Node.js • Express.js • Socket.IO • MongoDB • Mongoose • JWT • bcrypt
+
+**Deployment:** Netlify (Frontend) • Render (Backend) • MongoDB Atlas (Database)
+
+## 🚀 Installation
+
+**Prerequisites:** Node.js 18+, MongoDB (local or Atlas)
+
+```bash
+# Clone repository
+git clone https://github.com/ARYAN149489/ChitChat.git
+cd ChitChat* Node.js • Express.js • Socket.IO • MongoDB • Mongoose • JWT • bcrypt
 
 ## 🚀 Installation
 
