@@ -13,8 +13,20 @@ dotenv.config({ quiet: true });
 const app = express();
 const server = http.createServer(app);
 
-// CORS origins - support both dev ports and production URL
-const allowedOrigins = [process.env.FRONTEND_URL, 'http://localhost:5173', 'http://localhost:5174'];
+// CORS Configuration
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+];
+
+// Add production frontend URL if environment variable is set
+if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
+// Log allowed origins for debugging
+console.log('🌐 Allowed CORS Origins:', allowedOrigins);
+
 const io = socketio(server, {
     cors: {
         origin: allowedOrigins,
@@ -22,11 +34,28 @@ const io = socketio(server, {
         credentials: true,
     },
 });
-// middleware
+
+// CORS middleware with detailed logging
 app.use(cors({
-    origin: allowedOrigins,
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps, Postman, curl)
+        if (!origin) {
+            console.log('✅ Allowed: No origin (server-to-server)');
+            return callback(null, true);
+        }
+        
+        if (allowedOrigins.includes(origin)) {
+            console.log('✅ Allowed origin:', origin);
+            return callback(null, true);
+        } else {
+            console.log('❌ Blocked origin:', origin);
+            console.log('📋 Allowed origins are:', allowedOrigins);
+            return callback(new Error('Not allowed by CORS'), false);
+        }
+    },
     credentials: true
 }));
+
 app.use(express.json());
 
 mongoose.connect(process.env.MONGO_URL)
