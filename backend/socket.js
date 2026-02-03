@@ -59,7 +59,7 @@ const socketIo = (io) => {
 
         // send new messages start
         socket.on('new message', (message)=>{
-            socket.to(message.groupId).emit('message recieved ', message);
+            socket.to(message.groupId).emit('message recieved', message);
         });
         // send new messages end
 
