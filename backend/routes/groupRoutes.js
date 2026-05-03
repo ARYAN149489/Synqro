@@ -1,5 +1,6 @@
 const express = require('express');
 const Group = require('../models/GroupModel');
+const Message = require('../models/ChatModel');
 const { protect, isAdmin } = require('../middleware/authMiddleware');
 
 const groupRouter = express.Router();
@@ -39,6 +40,71 @@ groupRouter.get('/', protect, async (req, resp) => {
         resp.json(groups);
     } catch (error) {
         resp.status(400).json({ message: error.message })
+    }
+})
+
+// search groups using text index
+groupRouter.get('/search', protect, async (req, resp) => {
+    try {
+        const { q } = req.query;
+        if (!q || q.trim().length === 0) {
+            return resp.status(400).json({ message: "Search query is required" });
+        }
+        const groups = await Group.find(
+            { $text: { $search: q } },
+            { score: { $meta: "textScore" } }
+        )
+            .sort({ score: { $meta: "textScore" } })
+            .populate("admin", "username email")
+            .populate("members", "username email");
+        resp.json(groups);
+    } catch (error) {
+        resp.status(400).json({ message: error.message });
+    }
+})
+
+// Group stats using aggregation pipeline
+// Stages: $group → $lookup → $unwind → $project → $sort
+groupRouter.get('/stats', protect, async (req, resp) => {
+    try {
+        const stats = await Message.aggregate([
+            // Stage 1: Group messages by group, count them, find last activity
+            {
+                $group: {
+                    _id: "$group",
+                    totalMessages: { $sum: 1 },
+                    lastActivity: { $max: "$createdAt" },
+                    uniqueSenders: { $addToSet: "$sender" }
+                }
+            },
+            // Stage 2: Join with groups collection to get group details
+            {
+                $lookup: {
+                    from: "groups",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "groupInfo"
+                }
+            },
+            // Stage 3: Flatten the joined array
+            { $unwind: "$groupInfo" },
+            // Stage 4: Shape the output
+            {
+                $project: {
+                    _id: 1,
+                    groupName: "$groupInfo.name",
+                    totalMessages: 1,
+                    lastActivity: 1,
+                    memberCount: { $size: "$groupInfo.members" },
+                    activeSenderCount: { $size: "$uniqueSenders" }
+                }
+            },
+            // Stage 5: Sort by most active group first
+            { $sort: { totalMessages: -1 } }
+        ]);
+        resp.json(stats);
+    } catch (error) {
+        resp.status(400).json({ message: error.message });
     }
 })
 

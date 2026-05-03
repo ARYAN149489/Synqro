@@ -1,20 +1,24 @@
-import { Box, VStack, Text, Button, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, FormControl, FormLabel, Input, useToast, Flex, Icon, Badge, Tooltip } from "@chakra-ui/react";
+import { Box, VStack, Text, Button, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, FormControl, FormLabel, Input, InputGroup, InputLeftElement, useToast, Flex, Icon, Badge, Tooltip } from "@chakra-ui/react";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { FiLogOut, FiPlus, FiUsers } from "react-icons/fi";
+import { FiLogOut, FiPlus, FiSearch, FiUsers } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
 const Sidebar = ({ setSelectedGroup }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [newGroupName, setNewGroupName] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
   const [groups, setGroups] = useState([]);
   const [userGroups, setUserGroups] = useState([]);
   const [newGroupDescription, setNewGroupDescription] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [groupStats, setGroupStats] = useState({});
   const toast = useToast();
   const navigate = useNavigate();
   useEffect(() => {
     checkAdminStatus();
     fetchGroups();
+    fetchGroupStats();
   }, []);
   // check if login user is Admin
   const checkAdminStatus = () => {
@@ -51,6 +55,48 @@ const Sidebar = ({ setSelectedGroup }) => {
       });
     }
   }
+
+  // fetch group stats from aggregation endpoint
+  const fetchGroupStats = async () => {
+    try {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const token = userInfo.token;
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL || "http://localhost:3000"}/api/groups/stats`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      const statsMap = {};
+      data.forEach(stat => { statsMap[stat._id] = stat; });
+      setGroupStats(statsMap);
+    } catch (error) {
+      console.log("Stats error:", error.message);
+    }
+  };
+
+  // debounced server-side group search using text index
+  useEffect(() => {
+    if (searchQuery.trim().length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+        const token = userInfo.token;
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL || "http://localhost:3000"}/api/groups/search`,
+          {
+            params: { q: searchQuery },
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+        setSearchResults(data);
+      } catch (error) {
+        console.log("Search error:", error.message);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // create groups
   const handleCreateGroup = async () => {
@@ -162,7 +208,7 @@ const Sidebar = ({ setSelectedGroup }) => {
       bg="white"
       borderRight="1px"
       borderColor="gray.200"
-      width="300px"
+      width="100%"
       display="flex"
       flexDirection="column"
     >
@@ -199,9 +245,40 @@ const Sidebar = ({ setSelectedGroup }) => {
         )}
       </Flex>
 
+      {/* Search Groups */}
+      <Box px={4} pt={3} pb={1}>
+        <InputGroup size="sm">
+          <InputLeftElement pointerEvents="none">
+            <Icon as={FiSearch} color="gray.400" />
+          </InputLeftElement>
+          <Input
+            placeholder="Search groups..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            borderRadius="lg"
+            bg="gray.50"
+            borderColor="gray.200"
+            _hover={{ borderColor: "blue.300" }}
+            _focus={{ borderColor: "blue.400", bg: "white" }}
+          />
+        </InputGroup>
+      </Box>
+
       <Box flex="1" overflowY="auto" p={4} mb={16}>
+        {searchQuery.trim().length >= 2 && (
+          <Text fontSize="xs" color="gray.500" mb={2} px={1}>
+            {searchResults.length} result{searchResults.length !== 1 ? "s" : ""} found
+          </Text>
+        )}
         <VStack spacing={3} align="stretch">
-          {groups.map((group) => (
+          {(searchQuery.trim().length >= 2
+            ? searchResults
+            : searchQuery.trim().length === 1
+              ? groups.filter((group) =>
+                  group.name.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+              : groups
+          ).map((group) => (
             <Box
             // ============= group.id ===========================
               key={group._id}
@@ -235,6 +312,12 @@ const Sidebar = ({ setSelectedGroup }) => {
                   <Text fontSize="sm" color="gray.600" noOfLines={2}>
                     {group.description}
                   </Text>
+                  {groupStats[group._id] && (
+                    <Flex mt={1} gap={3} fontSize="xs" color="gray.400">
+                      <Text>💬 {groupStats[group._id].totalMessages} msgs</Text>
+                      <Text>👥 {groupStats[group._id].memberCount} members</Text>
+                    </Flex>
+                  )}
                 </Box>
                 <Button
                   size="sm"

@@ -1,5 +1,5 @@
-import {Box,VStack,HStack,Text,Input,Button,Flex,Icon,Avatar,InputGroup,InputRightElement,useToast} from "@chakra-ui/react";
-import { FiSend, FiInfo, FiMessageCircle } from "react-icons/fi";
+import {Box,VStack,HStack,Text,Input,Button,Flex,Icon,IconButton,Avatar,InputGroup,InputRightElement,InputLeftElement,Tooltip,useToast,Modal,ModalOverlay,ModalContent,ModalHeader,ModalBody,ModalCloseButton,Divider,Progress,Spinner,Badge} from "@chakra-ui/react";
+import { FiSend, FiInfo, FiMessageCircle, FiSearch, FiX, FiChevronLeft, FiChevronRight, FiBarChart2 } from "react-icons/fi";
 import UsersList from "./UsersList";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
@@ -15,6 +15,30 @@ const ChatArea = ({ selectedGroup, socket }) => {
   const typingTimeoutRef = useRef(null);
   const toast = useToast();
 
+  // Message search states
+  const [showMessageSearch, setShowMessageSearch] = useState(false);
+  const [messageSearchQuery, setMessageSearchQuery] = useState("");
+  const [messageSearchResults, setMessageSearchResults] = useState([]);
+  const [isUsersListOpen, setIsUsersListOpen] = useState(window.innerWidth >= 1024);
+
+  // Analytics modal states
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+
+  // Auto-collapse members list on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 1024) {
+        setIsUsersListOpen(false);
+      } else {
+        setIsUsersListOpen(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const currentUser = JSON.parse(localStorage.getItem("userInfo") || {});
 
   // Auto-scroll to bottom when messages change
@@ -28,6 +52,9 @@ const ChatArea = ({ selectedGroup, socket }) => {
       setMessages([]);
       setTypingUsers(new Set());
       setConnectedUsers([]);
+      setShowMessageSearch(false);
+      setMessageSearchQuery("");
+      setMessageSearchResults([]);
       
       fetchMessages();
       
@@ -177,6 +204,51 @@ const ChatArea = ({ selectedGroup, socket }) => {
     })
   };
 
+  // debounced server-side message search using text index
+  useEffect(() => {
+    if (!messageSearchQuery.trim() || !selectedGroup) {
+      setMessageSearchResults([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const token = currentUser?.token;
+        const { data } = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL || "http://localhost:3000"}/api/messages/${selectedGroup._id}/search`,
+          {
+            params: { q: messageSearchQuery },
+            headers: { Authorization: `Bearer ${token}` }
+          }
+        );
+        setMessageSearchResults(data);
+      } catch (error) {
+        console.log("Message search error:", error.message);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [messageSearchQuery, selectedGroup]);
+
+  // determine which messages to display
+  const displayedMessages = messageSearchQuery.trim() ? messageSearchResults : messages;
+
+  // fetch group analytics from aggregation endpoint
+  const fetchAnalytics = async () => {
+    if (!selectedGroup) return;
+    setAnalyticsLoading(true);
+    try {
+      const token = currentUser?.token;
+      const { data } = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL || "http://localhost:3000"}/api/messages/${selectedGroup._id}/stats`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAnalyticsData(data);
+    } catch (error) {
+      console.log("Analytics error:", error.message);
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  };
+
   // render typing indicator
   const renderTypingIndicator = ()=>{
     if(typingUsers.size === 0) return null;
@@ -264,7 +336,7 @@ const ChatArea = ({ selectedGroup, socket }) => {
         display="flex"
         flexDirection="column"
         bg="gray.50"
-        maxW={`calc(100% - 260px)`}
+        minW="0"
       >
         {selectedGroup ? (
           <>
@@ -287,14 +359,64 @@ const ChatArea = ({ selectedGroup, socket }) => {
               {selectedGroup.description}
             </Text>
           </Box>
-          <Icon
-            as={FiInfo}
-            fontSize="20px"
-            color="gray.400"
-            cursor="pointer"
-            _hover={{ color: "blue.500" }}
-          />
+          <Tooltip label="Search messages" placement="bottom">
+            <Box>
+              <Icon
+                as={showMessageSearch ? FiX : FiSearch}
+                fontSize="20px"
+                color={showMessageSearch ? "red.400" : "gray.400"}
+                cursor="pointer"
+                _hover={{ color: showMessageSearch ? "red.500" : "blue.500" }}
+                mr={3}
+                onClick={() => {
+                  setShowMessageSearch(!showMessageSearch);
+                  setMessageSearchQuery("");
+                  setMessageSearchResults([]);
+                }}
+              />
+            </Box>
+          </Tooltip>
+          <Tooltip label="Group analytics" placement="bottom">
+            <Box>
+              <Icon
+                as={FiBarChart2}
+                fontSize="20px"
+                color="gray.400"
+                cursor="pointer"
+                _hover={{ color: "blue.500" }}
+                onClick={() => {
+                  setShowAnalytics(true);
+                  fetchAnalytics();
+                }}
+              />
+            </Box>
+          </Tooltip>
         </Flex>
+
+        {/* Message Search Bar */}
+        {showMessageSearch && (
+          <Box px={6} py={2} bg="white" borderBottom="1px solid" borderColor="gray.200">
+            <InputGroup size="sm">
+              <InputLeftElement pointerEvents="none">
+                <Icon as={FiSearch} color="gray.400" />
+              </InputLeftElement>
+              <Input
+                placeholder="Search messages in this group..."
+                value={messageSearchQuery}
+                onChange={(e) => setMessageSearchQuery(e.target.value)}
+                borderRadius="lg"
+                bg="gray.50"
+                _focus={{ borderColor: "blue.400", bg: "white" }}
+                autoFocus
+              />
+            </InputGroup>
+            {messageSearchQuery.trim() && (
+              <Text fontSize="xs" color="gray.500" mt={1}>
+                {messageSearchResults.length} result{messageSearchResults.length !== 1 ? "s" : ""} found
+              </Text>
+            )}
+          </Box>
+        )}
 
         {/* Messages Area */}
         <VStack
@@ -318,7 +440,7 @@ const ChatArea = ({ selectedGroup, socket }) => {
             },
           }}
         >
-          {messages.map((message) => (
+          {displayedMessages.map((message) => (
             <Box
               key={message._id}
               alignSelf={message?.sender._id ===currentUser?._id ? "flex-end" : "flex-start"}
@@ -434,16 +556,141 @@ const ChatArea = ({ selectedGroup, socket }) => {
         )}
       </Box>
 
-      {/* UsersList with fixed width */}
-      <Box
-        width="260px"
-        position="sticky"
-        right={0}
-        top={0}
-        height="100%"
-        flexShrink={0}
-      >
-        {selectedGroup && <UsersList users={connectedUsers} />}
+      {/* Analytics Modal */}
+      <Modal isOpen={showAnalytics} onClose={() => setShowAnalytics(false)} size="lg" isCentered>
+        <ModalOverlay backdropFilter="blur(4px)" />
+        <ModalContent>
+          <ModalHeader>
+            <Flex align="center" gap={2}>
+              <Icon as={FiBarChart2} color="blue.500" />
+              <Text>{selectedGroup?.name} — Analytics</Text>
+            </Flex>
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody pb={6}>
+            {analyticsLoading ? (
+              <Flex justify="center" py={10}>
+                <Spinner size="lg" color="blue.500" />
+              </Flex>
+            ) : analyticsData ? (
+              <VStack spacing={5} align="stretch">
+                {/* Overall Stats */}
+                <Box>
+                  <Text fontWeight="bold" fontSize="sm" color="gray.500" mb={3} textTransform="uppercase">Overview</Text>
+                  <Flex gap={4} wrap="wrap">
+                    <Box flex="1" bg="blue.50" p={3} borderRadius="lg" minW="120px">
+                      <Text fontSize="2xl" fontWeight="bold" color="blue.600">{analyticsData.overall.totalMessages}</Text>
+                      <Text fontSize="xs" color="gray.500">Total Messages</Text>
+                    </Box>
+                    <Box flex="1" bg="green.50" p={3} borderRadius="lg" minW="120px">
+                      <Text fontSize="2xl" fontWeight="bold" color="green.600">{analyticsData.overall.activeMemberCount}</Text>
+                      <Text fontSize="xs" color="gray.500">Active Members</Text>
+                    </Box>
+                    <Box flex="1" bg="purple.50" p={3} borderRadius="lg" minW="120px">
+                      <Text fontSize="2xl" fontWeight="bold" color="purple.600">
+                        {analyticsData.overall.lastMessage
+                          ? new Date(analyticsData.overall.lastMessage).toLocaleDateString()
+                          : "N/A"}
+                      </Text>
+                      <Text fontSize="xs" color="gray.500">Last Activity</Text>
+                    </Box>
+                  </Flex>
+                </Box>
+
+                <Divider />
+
+                {/* Top Senders */}
+                <Box>
+                  <Text fontWeight="bold" fontSize="sm" color="gray.500" mb={3} textTransform="uppercase">Top Senders</Text>
+                  <VStack spacing={3} align="stretch">
+                    {analyticsData.topSenders.map((sender, index) => (
+                      <Flex key={sender._id} align="center" gap={3}>
+                        <Badge colorScheme={index === 0 ? "yellow" : index === 1 ? "gray" : "orange"} borderRadius="full" px={2} fontSize="xs">
+                          #{index + 1}
+                        </Badge>
+                        <Avatar size="xs" name={sender.username} />
+                        <Box flex="1">
+                          <Flex justify="space-between" mb={1}>
+                            <Text fontSize="sm" fontWeight="medium">{sender.username}</Text>
+                            <Text fontSize="xs" color="gray.500">{sender.messageCount} msgs</Text>
+                          </Flex>
+                          <Progress
+                            value={(sender.messageCount / analyticsData.overall.totalMessages) * 100}
+                            size="xs"
+                            colorScheme={index === 0 ? "blue" : "gray"}
+                            borderRadius="full"
+                          />
+                        </Box>
+                      </Flex>
+                    ))}
+                    {analyticsData.topSenders.length === 0 && (
+                      <Text fontSize="sm" color="gray.400" textAlign="center">No messages yet</Text>
+                    )}
+                  </VStack>
+                </Box>
+
+                <Divider />
+
+                {/* Daily Activity */}
+                <Box>
+                  <Text fontWeight="bold" fontSize="sm" color="gray.500" mb={3} textTransform="uppercase">Daily Activity (Last 7 Days)</Text>
+                  {analyticsData.dailyActivity.length > 0 ? (
+                    <VStack spacing={2} align="stretch">
+                      {analyticsData.dailyActivity.map(day => (
+                        <Flex key={day.date} align="center" gap={3}>
+                          <Text fontSize="xs" color="gray.500" minW="80px">{day.date}</Text>
+                          <Progress
+                            flex="1"
+                            value={(day.count / Math.max(...analyticsData.dailyActivity.map(d => d.count))) * 100}
+                            size="sm"
+                            colorScheme="blue"
+                            borderRadius="full"
+                          />
+                          <Text fontSize="xs" fontWeight="bold" color="gray.600" minW="30px" textAlign="right">{day.count}</Text>
+                        </Flex>
+                      ))}
+                    </VStack>
+                  ) : (
+                    <Text fontSize="sm" color="gray.400" textAlign="center">No activity in the last 7 days</Text>
+                  )}
+                </Box>
+              </VStack>
+            ) : (
+              <Text color="gray.400" textAlign="center" py={10}>No data available</Text>
+            )}
+          </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* Collapsible UsersList */}
+      <Box position="relative" flexShrink={0}>
+        <IconButton
+          aria-label="Toggle members"
+          icon={isUsersListOpen ? <FiChevronRight /> : <FiChevronLeft />}
+          size="xs"
+          bg="white"
+          shadow="md"
+          borderRadius="full"
+          position="absolute"
+          left="-14px"
+          top="50%"
+          transform="translateY(-50%)"
+          zIndex={10}
+          onClick={() => setIsUsersListOpen(!isUsersListOpen)}
+          _hover={{ bg: "blue.50", color: "blue.500" }}
+          border="1px solid"
+          borderColor="gray.200"
+        />
+        <Box
+          w={isUsersListOpen ? { base: "220px", xl: "260px" } : "0px"}
+          overflow="hidden"
+          transition="width 0.3s ease"
+          height="100%"
+        >
+          <Box w={{ base: "220px", xl: "260px" }} h="100%">
+            {selectedGroup && <UsersList users={connectedUsers} />}
+          </Box>
+        </Box>
       </Box>
     </Flex>
   );

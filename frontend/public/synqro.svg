@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3B82F6"/>
+      <stop offset="100%" stop-color="#8B5CF6"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#bg)"/>
+  <!-- Chat bubble -->
+  <path d="M16 18C16 15.79 17.79 14 20 14H44C46.21 14 48 15.79 48 18V34C48 36.21 46.21 38 44 38H28L20 46V38H20C17.79 38 16 36.21 16 34V18Z" fill="white" fill-opacity="0.95"/>
+  <!-- Three dots -->
+  <circle cx="26" cy="26" r="3" fill="#3B82F6"/>
+  <circle cx="32" cy="26" r="3" fill="#7C3AED"/>
+  <circle cx="38" cy="26" r="3" fill="#8B5CF6"/>
+</svg>

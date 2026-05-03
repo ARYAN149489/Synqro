@@ -8,7 +8,6 @@ const groupSchema = new mongoose.Schema({
         required: true,
         trim:true,
         unique: true
-        
     },
     description:{
         type:String,
@@ -36,6 +35,9 @@ groupSchema.index({ members: 1 });
 
 // 3. Compound Index
 groupSchema.index({ admin: 1, createdAt: -1 });
+
+// 4. Text Index (for full-text search on group name and description)
+groupSchema.index({ name: 'text', description: 'text' });
 
 const Group = mongoose.model('Group', groupSchema);
 module.exports = Group;
