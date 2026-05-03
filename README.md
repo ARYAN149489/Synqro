@@ -2,188 +2,138 @@
 
 # 💬 Synqro
 
-**A modern, real-time group chat application**
+**Real-time Group Chat Application | MERN Stack + WebSockets**
 
-[![React](https://img.shields.io/badge/React-18+-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
-[![Node.js](https://img.shields.io/badge/Node.js-18+-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Latest-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![Socket.io](https://img.shields.io/badge/Socket.io-4+-010101?logo=socket.io&logoColor=white)](https://socket.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![React](https://img.shields.io/badge/React_18-61DAFB?logo=react&logoColor=white)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Socket.io](https://img.shields.io/badge/Socket.IO-010101?logo=socket.io&logoColor=white)](https://socket.io/)
+[![Express](https://img.shields.io/badge/Express_5-000000?logo=express&logoColor=white)](https://expressjs.com/)
+[![JWT](https://img.shields.io/badge/JWT-000000?logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
 
-Built with React, Node.js, Express, Socket.IO, and MongoDB
-
-### 🚀 **[Live Demo](https://synqro.netlify.app)** | **[Backend API](https://chitchat-lihl.onrender.com)**
-
-[Features](#-features) • [Tech Stack](#-tech-stack) • [Installation](#-installation) • [API](#-api-endpoints) • [Deployment](#-deployment)
+🚀 **[Live Demo](https://synqro.netlify.app)** · **[Backend API](https://chitchat-lihl.onrender.com)**
 
 </div>
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-- 🔐 **User Authentication** - Secure JWT-based authentication with bcrypt password hashing
-- 💬 **Real-time Messaging** - Instant message delivery powered by Socket.IO WebSockets
-- 👥 **Group Chat** - Create and join multiple group conversations
-- ✍️ **Typing Indicators** - See when other users are typing in real-time
-- 🟢 **Online Status** - Live user presence tracking
-- 📱 **Responsive Design** - Beautiful UI that works on all devices
-- 🎨 **Modern Interface** - Clean design built with Chakra UI
+- **Real-time Messaging** — Instant delivery via Socket.IO WebSockets
+- **Group Chat** — Create, join, and leave multiple groups
+- **JWT Authentication** — Secure login with bcrypt password hashing
+- **Role-Based Access** — Admin-only group creation
+- **Typing Indicators** — Live "user is typing" with debounced events
+- **Online Presence** — Real-time connected users tracking per group
+- **Full-Text Search** — MongoDB text indexes for searching groups & messages
+- **Aggregation Analytics** — Group stats, top senders, and daily activity charts using MongoDB aggregation pipelines
+- **Collapsible Panels** — Sidebar & members list with toggle buttons + auto-collapse on resize
+- **Responsive UI** — Chakra UI components that adapt to all screen sizes
+
+---
 
 ## 🛠️ Tech Stack
 
-**Frontend:** React 18 • Vite • Chakra UI • Socket.IO Client • React Router • Axios
+| Layer | Technologies |
+|-------|-------------|
+| **Frontend** | React 18, Vite, Chakra UI, Socket.IO Client, React Router, Axios |
+| **Backend** | Node.js, Express 5, Socket.IO, Mongoose, JWT, bcrypt |
+| **Database** | MongoDB Atlas — with compound indexes, text indexes, aggregation pipelines |
+| **Deployment** | Netlify (frontend) · Render (backend) · MongoDB Atlas (database) |
 
-**Backend:** Node.js • Express.js • Socket.IO • MongoDB • Mongoose • JWT • bcrypt
-
-**Deployment:** Netlify (Frontend) • Render (Backend) • MongoDB Atlas (Database)
-
-## 📦 Installation
-
-### Prerequisites
-- Node.js 18+ and npm
-- MongoDB (local or Atlas account)
-
-### Clone & Setup
-
-```bash
-# Clone repository
-git clone https://github.com/ARYAN149489/Synqro.git
-cd ChitChat
-
-# Backend setup
-cd backend
-npm install
-cp .env.example .env
-# Edit .env with your MongoDB URL, JWT secret, etc.
-npm run dev
-
-# Frontend setup (in new terminal)
-cd frontend
-npm install
-cp .env.example .env
-# Edit .env with your backend URL
-npm run dev
-```
-
-**Access the app:**
-- Frontend: `http://localhost:5173`
-- Backend: `http://localhost:3000`
-
-## 🔐 Environment Variables
-
-### Backend `.env`
-```env
-MONGO_URL=mongodb://localhost:27017/chitchat
-JWT_SECRET=your_secure_random_string
-PORT=3000
-FRONTEND_URL=http://localhost:5173
-```
-
-### Frontend `.env`
-```env
-VITE_BACKEND_URL=http://localhost:3000
-```
+---
 
 ## 📁 Project Structure
 
 ```
-ChitChat/
 ├── backend/
-│   ├── middleware/      # Auth middleware
-│   ├── models/          # MongoDB schemas (User, Group, Message)
-│   ├── routes/          # API routes
-│   ├── server.js        # Express server setup
-│   └── socket.js        # Socket.IO configuration
+│   ├── server.js            # Express + Socket.IO + MongoDB setup
+│   ├── socket.js            # Real-time event handling (rooms, typing, presence)
+│   ├── middleware/           # JWT auth + admin role guard
+│   ├── models/              # User, Group, Message schemas with indexes
+│   └── routes/              # REST API + text search + aggregation endpoints
 │
 └── frontend/
-    ├── src/
-    │   ├── components/  # ChatArea, Sidebar, UsersList
-    │   ├── pages/       # Landing, Login, Register, Chat
-    │   └── App.jsx      # Root component
-    └── vite.config.js
+    └── src/
+        ├── pages/           # Landing, Login, Register, Chat
+        └── components/      # Sidebar, ChatArea, UsersList, PrivateRoute
 ```
+
+---
 
 ## 🔌 API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | POST | `/api/users/register` | Register new user |
-| POST | `/api/users/login` | User login |
+| POST | `/api/users/login` | Login with JWT token |
 | GET | `/api/groups` | Get all groups |
-| POST | `/api/groups` | Create new group |
+| POST | `/api/groups` | Create group (admin) |
+| GET | `/api/groups/search?q=` | Full-text search groups |
+| GET | `/api/groups/stats` | Group analytics (aggregation) |
 | POST | `/api/groups/:id/join` | Join a group |
 | POST | `/api/groups/:id/leave` | Leave a group |
 | GET | `/api/messages/:groupId` | Get group messages |
 | POST | `/api/messages` | Send message |
-| GET | `/health` | Health check |
+| GET | `/api/messages/:groupId/search?q=` | Full-text search messages |
+| GET | `/api/messages/:groupId/stats` | Chat analytics (aggregation) |
 
-## 🚀 Deployment
+---
 
-### Backend (Render)
+## 🗄️ MongoDB Features Used
 
-1. **Connect Repository:** Link your GitHub repo to Render
-2. **Configure Settings:**
-   - Root Directory: `backend`
-   - Build Command: `npm install`
-   - Start Command: `npm start`
-3. **Environment Variables:**
-   - `MONGO_URL` - MongoDB Atlas connection string
-   - `JWT_SECRET` - Secure JWT secret key
-   - `FRONTEND_URL` - Your Netlify URL (e.g., `https://synqro.netlify.app`)
-   - `PORT` - 3000
+**Indexes:**  Single field · Compound · Multikey · Text indexes
 
-### Frontend (Netlify)
+**Aggregation Pipelines:** `$group` · `$lookup` · `$unwind` · `$project` · `$match` · `$sort` · `$limit` · `$addToSet` · `$dateToString` · `$size`
 
-1. **Connect Repository:** Link your GitHub repo to Netlify
-2. **Configure Settings:**
-   - Base Directory: `frontend`
-   - Build Command: `npm install && npm run build`
-   - Publish Directory: `frontend/dist`
-3. **Environment Variables:**
-   - `VITE_BACKEND_URL` - Your Render backend URL (e.g., `https://chitchat-lihl.onrender.com`)
+**Operators:** `$text` · `$search` · `$meta: textScore` · `$gte` · `$sum` · `$max` · `$min`
 
-### Database (MongoDB Atlas)
+---
 
-1. Create a free cluster on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas)
-2. Whitelist IP: `0.0.0.0/0` (allow all IPs for Render/Netlify)
-3. Get connection string and add to Render environment variables
-
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to open issues or submit pull requests.
+## ⚡ Quick Start
 
 ```bash
-git checkout -b feature/AmazingFeature
-git commit -m 'Add some AmazingFeature'
-git push origin feature/AmazingFeature
+# Clone
+git clone https://github.com/ARYAN149489/Synqro.git && cd ChitChat
+
+# Backend
+cd backend && npm install && cp .env.example .env && npm run dev
+
+# Frontend (new terminal)
+cd frontend && npm install && cp .env.example .env && npm run dev
 ```
 
-## 📄 License
+**Environment Variables:**
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+```env
+# backend/.env
+MONGO_URL=mongodb://localhost:27017/chitchat
+JWT_SECRET=your_secret_key
+PORT=3000
+FRONTEND_URL=http://localhost:5173
+
+# frontend/.env
+VITE_BACKEND_URL=http://localhost:3000
+```
+
+Open **http://localhost:5173** and start chatting!
+
+---
 
 ## 👨‍💻 Author
 
-**Aryan Kansal** - Full Stack Developer
+**Aryan Kansal** — Full Stack Developer
 
 [![GitHub](https://img.shields.io/badge/GitHub-ARYAN149489-181717?logo=github)](https://github.com/ARYAN149489)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Connect-0077B5?logo=linkedin)](https://linkedin.com/in/aryan-kansal)
 [![Email](https://img.shields.io/badge/Email-aryankansal113@gmail.com-D14836?logo=gmail&logoColor=white)](mailto:aryankansal113@gmail.com)
 
-## 📞 Support
-
-⭐ Star this repo if you find it helpful!
-
-📧 **Contact:** aryankansal113@gmail.com  
-🐛 **Issues:** [GitHub Issues](https://github.com/ARYAN149489/Synqro/issues)
-
 ---
 
 <div align="center">
 
-**Made with ❤️ by Aryan Kansal**
+⭐ **Star this repo if you find it helpful!**
 
-*© 2026 Synqro - Real-time Group Chat Application*
+*Built with the MERN Stack + WebSockets · © 2026 Synqro*
 
 </div>

@@ -144,4 +144,24 @@ groupRouter.post('/:groupId/leave', protect, async(req, resp)=>{
         return resp.status(400).json({message: error.message});
     }
 })
+
+// Delete group (admin only)
+groupRouter.delete('/:groupId', protect, isAdmin, async (req, resp) => {
+    try {
+        const group = await Group.findById(req.params.groupId);
+        if (!group) {
+            return resp.status(404).json({ message: 'Group not found' });
+        }
+        // Delete all messages in the group (cascade delete)
+        await Message.deleteMany({ group: req.params.groupId });
+        // Delete the group
+        await Group.findByIdAndDelete(req.params.groupId);
+        // Broadcast deletion to all connected users via Socket.IO
+        const io = req.app.get('io');
+        io.emit('group deleted', { groupId: req.params.groupId });
+        return resp.json({ message: 'Group and all its messages deleted successfully' });
+    } catch (error) {
+        return resp.status(400).json({ message: error.message });
+    }
+})
 module.exports = groupRouter;

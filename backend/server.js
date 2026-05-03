@@ -62,6 +62,7 @@ mongoose.connect(process.env.MONGO_URL)
 
 //initialize
 socketIo(io);
+app.set('io', io);
 
 // routes
 app.use('/api/users', userRouter);

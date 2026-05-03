@@ -49,7 +49,7 @@ const Chat = () => {
           borderColor="gray.200"
         >
           <Box w={{ base: "250px", xl: "300px" }} h="100%">
-            <Sidebar setSelectedGroup={setSelectedGroup} />
+            <Sidebar setSelectedGroup={setSelectedGroup} socket={socket} />
           </Box>
         </Box>
         <IconButton

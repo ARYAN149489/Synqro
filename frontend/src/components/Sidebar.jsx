@@ -1,10 +1,12 @@
-import { Box, VStack, Text, Button, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalCloseButton, FormControl, FormLabel, Input, InputGroup, InputLeftElement, useToast, Flex, Icon, Badge, Tooltip } from "@chakra-ui/react";
+import { Box, VStack, Text, Button, IconButton, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, ModalCloseButton, FormControl, FormLabel, Input, InputGroup, InputLeftElement, useToast, Flex, Icon, Badge, Tooltip } from "@chakra-ui/react";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { FiLogOut, FiPlus, FiSearch, FiUsers } from "react-icons/fi";
+import { FiLogOut, FiPlus, FiSearch, FiUsers, FiTrash2, FiAlertTriangle } from "react-icons/fi";
 import { Link, useNavigate } from "react-router-dom";
-const Sidebar = ({ setSelectedGroup }) => {
+const Sidebar = ({ setSelectedGroup, socket }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const [groupToDelete, setGroupToDelete] = useState(null);
   const [newGroupName, setNewGroupName] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -20,6 +22,25 @@ const Sidebar = ({ setSelectedGroup }) => {
     fetchGroups();
     fetchGroupStats();
   }, []);
+
+  // Listen for real-time group deletion events
+  useEffect(() => {
+    if (!socket) return;
+    const handleGroupDeleted = ({ groupId }) => {
+      setGroups(prev => prev.filter(g => g._id !== groupId));
+      setSelectedGroup(prev => prev?._id === groupId ? null : prev);
+      fetchGroupStats();
+      toast({
+        title: 'Group Removed',
+        description: 'A group has been deleted by the admin.',
+        status: 'info',
+        duration: 3000,
+        isClosable: true,
+      });
+    };
+    socket.on('group deleted', handleGroupDeleted);
+    return () => socket.off('group deleted', handleGroupDeleted);
+  }, [socket]);
   // check if login user is Admin
   const checkAdminStatus = () => {
     const userInfo = JSON.parse(localStorage.getItem('userInfo') || {});
@@ -197,6 +218,38 @@ const Sidebar = ({ setSelectedGroup }) => {
     }
   };
 
+  // delete group (admin only)
+  const handleDeleteGroup = async () => {
+    if (!groupToDelete) return;
+    try {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const token = userInfo.token;
+      await axios.delete(
+        `${import.meta.env.VITE_BACKEND_URL || "http://localhost:3000"}/api/groups/${groupToDelete}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      onDeleteClose();
+      setGroupToDelete(null);
+      setSelectedGroup(null);
+      await fetchGroups();
+      await fetchGroupStats();
+      toast({
+        title: 'Group Deleted',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      toast({
+        title: 'Error Deleting Group',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+        description: error.message || 'An error occurred'
+      });
+    }
+  };
+
   // logout
   const handleLogout = () => {
     localStorage.removeItem('userInfo');
@@ -343,6 +396,24 @@ const Sidebar = ({ setSelectedGroup }) => {
                     "Join"
                   )}
                 </Button>
+                {isAdmin && (
+                  <Tooltip label="Delete group" placement="top">
+                    <IconButton
+                      icon={<Icon as={FiTrash2} />}
+                      size="sm"
+                      variant="ghost"
+                      colorScheme="red"
+                      ml={1}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setGroupToDelete(group._id);
+                        onDeleteOpen();
+                      }}
+                      _hover={{ bg: "red.50" }}
+                      aria-label="Delete group"
+                    />
+                  </Tooltip>
+                )}
               </Flex>
             </Box>
           ))}
@@ -412,6 +483,37 @@ const Sidebar = ({ setSelectedGroup }) => {
               Create Group
             </Button>
           </ModalBody>
+        </ModalContent>
+      </Modal>
+
+      {/* Delete Confirmation Modal */}
+      <Modal isOpen={isDeleteOpen} onClose={onDeleteClose} isCentered size="sm">
+        <ModalOverlay backdropFilter="blur(4px)" />
+        <ModalContent>
+          <ModalHeader>
+            <Flex align="center" gap={2}>
+              <Icon as={FiAlertTriangle} color="red.500" fontSize="20px" />
+              <Text>Delete Group</Text>
+            </Flex>
+          </ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Text color="gray.600">
+              Are you sure you want to delete this group? All messages will be <Text as="span" fontWeight="bold" color="red.500">permanently deleted</Text>. This action cannot be undone.
+            </Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button variant="ghost" mr={3} onClick={onDeleteClose}>
+              Cancel
+            </Button>
+            <Button
+              colorScheme="red"
+              leftIcon={<Icon as={FiTrash2} />}
+              onClick={handleDeleteGroup}
+            >
+              Delete Group
+            </Button>
+          </ModalFooter>
         </ModalContent>
       </Modal>
     </Box>
