@@ -7,8 +7,8 @@ const groupSchema = new mongoose.Schema({
         type:String,
         required: true,
         trim:true,
-        unique:true,
-        index:true
+        unique: true
+        
     },
     description:{
         type:String,
@@ -28,6 +28,14 @@ const groupSchema = new mongoose.Schema({
     timestamps: true
 });
 
+// 1. Single Field Index
+groupSchema.index({ name: 1 });
 
-const Group = mongoose.model('Group',groupSchema);
+// 2. Multikey Index
+groupSchema.index({ members: 1 });
+
+// 3. Compound Index
+groupSchema.index({ admin: 1, createdAt: -1 });
+
+const Group = mongoose.model('Group', groupSchema);
 module.exports = Group;

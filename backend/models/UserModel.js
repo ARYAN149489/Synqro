@@ -7,7 +7,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
-      index: true,
     },
     email: {
       type: String,
@@ -15,8 +14,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
 
       lowercase: true,
-      unique: true,
-      index: true,
+      unique: true
     },
     password: {
       type: String,
@@ -31,6 +29,13 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// 1. Single Field Indexes
+userSchema.index({ email: 1 });
+userSchema.index({ username: 1 });
+
+// 2. Compound Index
+userSchema.index({ isAdmin: 1, createdAt: -1 });
 
 // hash pass
 userSchema.pre("save", async function (next) {

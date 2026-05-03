@@ -15,7 +15,7 @@ const messageSchema = new mongoose.Schema(
     group: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Group",
-      index: true,
+      
     },
   },
   {
@@ -23,7 +23,14 @@ const messageSchema = new mongoose.Schema(
   }
 );
 
+// 1. Compound Index (Highest priority for this app)
 messageSchema.index({ group: 1, createdAt: 1 });
+
+// 2. Single Field Index
+messageSchema.index({ sender: 1 });
+
+// 3. Text Index (For future add on's functionality)
+messageSchema.index({ content: 'text' });
 
 const Message = mongoose.model("Message", messageSchema);
 module.exports = Message;
