@@ -64,42 +64,55 @@ groupRouter.get('/search', protect, async (req, resp) => {
 })
 
 // Group stats using aggregation pipeline
-// Stages: $group → $lookup → $unwind → $project → $sort
+// Optimized Stages: Group.aggregate → $lookup (sub-pipeline group) → $unwind (preserve nulls) → $project → $sort
 groupRouter.get('/stats', protect, async (req, resp) => {
     try {
-        const stats = await Message.aggregate([
-            // Stage 1: Group messages by group, count them, find last activity
-            {
-                $group: {
-                    _id: "$group",
-                    totalMessages: { $sum: 1 },
-                    lastActivity: { $max: "$createdAt" },
-                    uniqueSenders: { $addToSet: "$sender" }
-                }
-            },
-            // Stage 2: Join with groups collection to get group details
+        const stats = await Group.aggregate([
+            // Stage 1: Lookup with sub-pipeline on messages (pre-aggregates messages to prevent 16MB doc limit)
             {
                 $lookup: {
-                    from: "groups",
-                    localField: "_id",
-                    foreignField: "_id",
-                    as: "groupInfo"
+                    from: "messages",
+                    let: { groupId: "$_id" },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ["$group", "$$groupId"] } } },
+                        {
+                            $group: {
+                                _id: null,
+                                totalMessages: { $sum: 1 },
+                                lastActivity: { $max: "$createdAt" },
+                                uniqueSenders: { $addToSet: "$sender" }
+                            }
+                        }
+                    ],
+                    as: "msgStats"
                 }
             },
-            // Stage 3: Flatten the joined array
-            { $unwind: "$groupInfo" },
-            // Stage 4: Shape the output
+            // Stage 2: Flatten the msgStats array (which has 0 or 1 elements)
+            // Preserve groups that have no messages (msgStats will be null/missing)
+            {
+                $unwind: {
+                    path: "$msgStats",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            // Stage 3: Shape the output and handle null defaults for empty groups
             {
                 $project: {
                     _id: 1,
-                    groupName: "$groupInfo.name",
-                    totalMessages: 1,
-                    lastActivity: 1,
-                    memberCount: { $size: "$groupInfo.members" },
-                    activeSenderCount: { $size: "$uniqueSenders" }
+                    groupName: "$name",
+                    totalMessages: { $ifNull: ["$msgStats.totalMessages", 0] },
+                    lastActivity: { $ifNull: ["$msgStats.lastActivity", null] },
+                    memberCount: { $size: "$members" },
+                    activeSenderCount: {
+                        $cond: [
+                            { $isArray: "$msgStats.uniqueSenders" },
+                            { $size: "$msgStats.uniqueSenders" },
+                            0
+                        ]
+                    }
                 }
             },
-            // Stage 5: Sort by most active group first
+            // Stage 4: Sort by most active group first
             { $sort: { totalMessages: -1 } }
         ]);
         resp.json(stats);
@@ -107,6 +120,7 @@ groupRouter.get('/stats', protect, async (req, resp) => {
         resp.status(400).json({ message: error.message });
     }
 })
+
 
 // Join group
 groupRouter.post('/:groupId/join', protect, async (req, resp) => {
