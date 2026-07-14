@@ -64,6 +64,20 @@ mongoose.connect(process.env.MONGO_URL)
 socketIo(io);
 app.set('io', io);
 
+// Health check route
+app.get('/', (req, res) => {
+    res.json({
+        status: 'running',
+        app: 'Synqro API',
+        version: '1.0.0',
+        endpoints: {
+            users: '/api/users',
+            groups: '/api/groups',
+            messages: '/api/messages',
+        },
+    });
+});
+
 // routes
 app.use('/api/users', userRouter);
 app.use('/api/groups', groupRouter);
