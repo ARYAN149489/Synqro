@@ -1,6 +1,6 @@
 <div align="center">
 
-# 💬 Synqro
+# Synqro
 
 **Production-Ready Real-time Group Chat | MERN Stack + WebSockets + Docker**
 
@@ -13,13 +13,13 @@
 [![JWT](https://img.shields.io/badge/JWT-000000?logo=jsonwebtokens&logoColor=white)](https://jwt.io/)
 [![Nginx](https://img.shields.io/badge/Nginx-009639?logo=nginx&logoColor=white)](https://nginx.org/)
 
-🚀 **[Live Demo](https://synqro.netlify.app)** · **[Backend API](https://chitchat-lihl.onrender.com)**
+**[Live Demo](https://synqro.netlify.app)** · **[Backend API](https://chitchat-lihl.onrender.com)**
 
 </div>
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 <div align="center">
 <table>
@@ -40,7 +40,7 @@
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 | Feature | Implementation Detail |
 |---------|----------------------|
@@ -56,7 +56,7 @@
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -81,7 +81,7 @@
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technologies |
 |-------|-------------|
@@ -93,7 +93,7 @@
 
 ---
 
-## 🐳 Docker Setup
+## Docker Setup
 
 The entire application is containerized with optimized, production-grade Docker configurations.
 
@@ -135,7 +135,7 @@ Open **http://localhost:8080** — the full app is running.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 ChitChat/
@@ -160,7 +160,7 @@ ChitChat/
 
 ---
 
-## 🔌 API Endpoints
+## API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -180,7 +180,7 @@ ChitChat/
 
 ---
 
-## 🗄️ MongoDB Features Used
+## MongoDB Features Used
 
 **Indexes:** Single field · Compound · Multikey · Text indexes
 
@@ -190,7 +190,7 @@ ChitChat/
 
 ---
 
-## ⚡ Local Development (without Docker)
+## Local Development (without Docker)
 
 ```bash
 # Clone
@@ -220,7 +220,7 @@ Open **http://localhost:5173** and start chatting!
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 **Aryan Kansal** — Full Stack Developer
 
@@ -232,7 +232,7 @@ Open **http://localhost:5173** and start chatting!
 
 <div align="center">
 
-⭐ **Star this repo if you find it helpful!**
+**Star this repo if you find it helpful!**
 
 *Built with the MERN Stack + WebSockets + Docker · © 2025 Synqro*
 
