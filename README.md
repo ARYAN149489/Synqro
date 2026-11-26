@@ -216,7 +216,7 @@ FRONTEND_URL=http://localhost:5173
 VITE_BACKEND_URL=http://localhost:3000
 ```
 
-Open **http://localhost:5173** and start chatting!
+Open **http://localhost:5173** and start chatting! You can verify API service health at http://localhost:3000/api/health.
 
 ---
 
